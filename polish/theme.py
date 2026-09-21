@@ -428,3 +428,100 @@ def placeholder_hint(slide, y, h, text):
     ln.append(el)
     fill_text(sp, [P([T(text, sz=15, c=INK_SOFT)], al="c")], anchor="m")
     return sp
+
+
+
+# ---------------------------------------------------------------- 原生表格
+NS_A = "http://schemas.openxmlformats.org/drawingml/2006/main"
+_TC_ORDER = ["a:lnL", "a:lnR", "a:lnT", "a:lnB", "a:lnTlToBr", "a:lnBlToTr",
+             "a:cell3D", "a:headers", "a:noFill", "a:solidFill", "a:gradFill",
+             "a:blipFill", "a:pattFill", "a:grpFill", "a:extLst"]
+
+
+def cell_border(cell, edge, *, color=BLUE_LINE, w=0.75):
+    """给单元格某一边设描边（python-pptx 未暴露，需按 schema 顺序插入）。"""
+    from pptx.oxml import parse_xml
+
+    tag = {"L": "a:lnL", "R": "a:lnR", "T": "a:lnT", "B": "a:lnB"}[edge]
+    tcPr = cell._tc.get_or_add_tcPr()
+    old = tcPr.find(qn(tag))
+    if old is not None:
+        tcPr.remove(old)
+    if color is None:
+        el = parse_xml('<%s xmlns:a="%s" w="0"><a:noFill/></%s>' % (tag, NS_A, tag))
+    else:
+        el = parse_xml(
+            '<%s xmlns:a="%s" w="%d" cap="flat" cmpd="sng" algn="ctr">'
+            '<a:solidFill><a:srgbClr val="%s"/></a:solidFill>'
+            '<a:prstDash val="solid"/><a:round/>'
+            '<a:headEnd type="none"/><a:tailEnd type="none"/></%s>'
+            % (tag, NS_A, int(w * 12700), color, tag)
+        )
+    tcPr.insert_element_before(el, *_TC_ORDER[_TC_ORDER.index(tag) + 1:])
+
+
+def table(slide, x, y, w, col_w, rows, *, head_h=0.52, row_h=0.50,
+          sz=11.5, head_sz=12.5, head_fill=NAVY, zebra=True,
+          accent_col=None, accent_fill="E8F0F8"):
+    """参数对标表。rows[0] 为表头；单元格内容可以是 str 或 [T(...), ...]。
+
+    accent_col —— 需要突出的列序号（本项目列），整列换底色。
+    """
+    n_r, n_c = len(rows), len(rows[0])
+    h = head_h + row_h * (n_r - 1)
+    gf = slide.shapes.add_table(n_r, n_c, I(x), I(y), I(w), I(h))
+    tbl = gf.table
+    tbl.first_row = False
+    tbl.horz_banding = False
+    tbl.vert_banding = False
+    for j, cw in enumerate(col_w):
+        tbl.columns[j].width = I(cw)
+    tbl.rows[0].height = I(head_h)
+    for i in range(1, n_r):
+        tbl.rows[i].height = I(row_h)
+
+    for i, row in enumerate(rows):
+        for j, content in enumerate(row):
+            cell = tbl.cell(i, j)
+            cell.margin_left = cell.margin_right = I(0.12)
+            cell.margin_top = cell.margin_bottom = I(0.04)
+            cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+            head = i == 0
+            is_acc = accent_col is not None and j == accent_col
+            if head:
+                bg = head_fill
+            elif is_acc:
+                bg = accent_fill
+            elif zebra and i % 2 == 0:
+                bg = "F7FAFC"
+            else:
+                bg = WHITE
+            cell.fill.solid()
+            cell.fill.fore_color.rgb = rgb(bg)
+            for e in ("L", "R", "T", "B"):
+                cell_border(cell, e, color=None if head else BLUE_LINE, w=0.75)
+            if not head:
+                cell_border(cell, "B", color=BLUE_LINE, w=0.75)
+            runs = [T(content)] if isinstance(content, str) else list(content)
+            base_c = WHITE if head else (NAVY if (is_acc or j == 0) else INK)
+            for r in runs:
+                if r.c is None:
+                    r.c = base_c
+                if r.b is None:
+                    r.b = head or is_acc or j == 0
+                if r.sz is None:
+                    r.sz = head_sz if head else sz
+            write(cell.text_frame, [P(runs, al="c" if j else "l", ls=1.22)],
+                  sz=sz, c=base_c, f=FONT)
+    # 突出列加上下红线收口
+    if accent_col is not None:
+        for i in range(n_r):
+            cell_border(tbl.cell(i, accent_col), "L", color=CRIMSON, w=1.5)
+            cell_border(tbl.cell(i, accent_col), "R", color=CRIMSON, w=1.5)
+    return gf, h
+
+
+def source_note(slide, y, text):
+    """资料来源行，统一样式。"""
+    return textbox(slide, M, y, CW, 0.26,
+                   [P([T("资料来源：" + text, sz=9, c=INK_SOFT)], ls=1.1)], anchor="t")

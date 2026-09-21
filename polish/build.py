@@ -28,13 +28,14 @@ from theme import (  # noqa: E402
     PAPER, RED_HI, RULE_Y, SH, SW, WHITE, I, P, T, brand_rule, card,
     card_head, chip, cover_crop, fill_text, fit_box, foot, grad, head, kpi,
     line, placeholder_hint, put_pic, rect, set_rule_image, soft_shadow,
-    takeaway, textbox, write,
+    source_note, table, takeaway, textbox, write,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "咖啡液萃取与超声杀菌工艺及装备设计研究设备.pptx"
 OUTDIR = ROOT / "dist"
 OUT = OUTDIR / "咖啡液萃取与超声杀菌工艺及装备设计研究设备_美化版.pptx"
+EXCERPT = OUTDIR / "咖啡液汇报_新增页_06_08_14_15.pptx"
 WORK = Path("/projects/sandbox/work/build")
 
 MED: dict[str, tuple[str, int, int]] = {}
@@ -834,6 +835,23 @@ def s24(slide, shapes):
 
 
 # ------------------------------------------------------------------ main
+def make_excerpt(keep):
+    """从成品里抽出指定页，另存为独立可编辑 PPTX（页码沿用原编号）。"""
+    prs = Presentation(str(OUT))
+    sldIdLst = prs.slides._sldIdLst
+    keep0 = {n - 1 for n in keep}
+    for i, sldId in reversed(list(enumerate(list(sldIdLst)))):
+        if i in keep0:
+            continue
+        rId = sldId.get(
+            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id")
+        prs.part.drop_rel(rId)
+        sldIdLst.remove(sldId)
+    prs.save(str(EXCERPT))
+    n = len(Presentation(str(EXCERPT)).slides)
+    print("摘录输出：%s（%d 页：%s）" % (EXCERPT, n, "、".join(str(k) for k in keep)))
+
+
 def main():
     WORK.mkdir(parents=True, exist_ok=True)
     extract_media()
@@ -855,8 +873,10 @@ def main():
     s01(slides[0])
     for n, (num, cn, en, lead) in DIVIDERS.items():
         divider(slides[n - 1], shapes, num, cn, en, lead)
-    for n, (eb, title, label) in PLACEHOLDERS.items():
-        placeholder_page(slides[n - 1], n, eb, title, label)
+    s06(slides[5], 6)
+    s08(slides[7], 8)
+    s14(slides[13], 14)
+    s15(slides[14], 15)
     s03(slides[2], 3)
     s04(slides[3], 4)
     s05(slides[4], 5)
@@ -875,6 +895,7 @@ def main():
     renumber(prs)
     OUTDIR.mkdir(parents=True, exist_ok=True)
     prs.save(str(OUT))
+    make_excerpt([6, 8, 14, 15])
 
     # 校验：原始位图是否全部仍在使用
     missing = sorted(set(MED) - USED)
@@ -885,6 +906,285 @@ def main():
         print("原始图片全部复用（hdphoto1.wdp 为 image22.jpeg 的 HD 副本图层，"
               "随图片一并保留在包内）")
     print("输出：", OUT)
+
+
+
+# ==================================================================
+#  以下四页为新增内容（原稿为空白待补页），保持与全篇一致的视觉系统
+# ==================================================================
+
+def _note_card(slide, x, y, w, h, *, tag, tag_fill, big, big_unit, title, body,
+               concl):
+    """驱动力卡：角标 + 大字指标 + 说明 + 小结行。"""
+    card(slide, x, y, w, h, radius=0.035)
+    card_head(slide, x, y, w, 0.56, [T(tag, sz=15)], al="c", fill=tag_fill)
+    textbox(slide, x + 0.22, y + 0.72, w - 0.44, 0.58,
+            [P([T(big, sz=34, b=True, c=tag_fill),
+                T(" " + big_unit, sz=14, b=True, c=tag_fill)], ls=1.0)])
+    textbox(slide, x + 0.22, y + 1.34, w - 0.44, 0.32,
+            [P([T(title, sz=14, b=True, c=NAVY)])])
+    rect(slide, x + 0.22, y + 1.70, w - 0.44, 0.012, fill=BLUE_LINE)
+    # 窄栏 + 中西文混排，两端对齐会把字距拉开，这里统一左对齐
+    textbox(slide, x + 0.22, y + 1.82, w - 0.44, h - 2.66,
+            [P([T(body, sz=11.5, c=INK_MID)], ls=1.46)])
+    band = rect(slide, x + 0.16, y + h - 0.78, w - 0.32, 0.62, fill=BLUE_TINT,
+                shape=MSO_SHAPE.ROUNDED_RECTANGLE, adj=0.10)
+    fill_text(band, [P([T(concl, sz=11.5, b=True, c=NAVY)], ls=1.32)],
+              anchor="m", pad=(0.16, 0.14, 0.02, 0.02))
+
+
+def s06(slide, idx):
+    """06 市场前景 —— 需求 / 品类 / 装备 三端趋势。"""
+    from theme import page_frame
+
+    reset(slide)
+    page_frame(slide)
+    head(slide, "01 / 项目背景 · 市场前景",
+         [T("现制咖啡规模化 ＋ 冷杀菌装备扩容，"), T("构成确定的市场窗口", c=RED_HI)],
+         sz=25)
+
+    kh = 0.96
+    kw = (CW - 2 * 0.24) / 3
+    for k, (val, unit, lab, acc) in enumerate([
+        ("3", "万家", "瑞幸单一品牌国内门店数（2026.02）", NAVY),
+        ("77.2", "亿美元", "中国咖啡市场 2031 年预测规模", NAVY_MID),
+        ("12.81", "%", "全球 HPP 冷杀菌装备 CAGR（2023—2030）", RED_HI),
+    ]):
+        kpi(slide, M + k * (kw + 0.24), 1.30, kw, kh, val, lab, accent=acc,
+            unit=unit)
+
+    ct, ch = 2.44, 3.44
+    cw = (CW - 2 * 0.26) / 3
+    cards = [
+        ("需求端", NAVY, "3", "终端网络已规模化",
+         "瑞幸 2026 年 2 月开出国内第 3 万家门店，覆盖 32 个省级行政区、"
+         "300 余个城市；2026 年二季度净收入 158.86 亿元，同比增长 28.5%，"
+         "月均交易客户数创历史新高。",
+         "门店密度与客流规模同步抬升，标准化咖啡液原料需求随之放大"),
+        ("品类端", NAVY_MID, "621.74", "咖啡液增速领先",
+         "本项目调研显示，咖啡液 2021—2025 年增长 621.74%，2025 年年度消费"
+         "产值 94.8 亿元；中国咖啡市场预计由 2026 年 57.95 亿美元增至 2031 年 "
+         "77.2 亿美元，年复合增长率 5.89%。",
+         "品类高增已被市场验证，不再停留于概念阶段"),
+        ("装备端", BLUE, "22.52", "冷杀菌装备扩容",
+         "全球超高压（HPP）冷杀菌装备市场预计由 2023 年 9.67 亿美元增至 "
+         "2030 年 22.52 亿美元；全球已装机 350 台以上，其中约 19% 用于果汁"
+         "与饮料，冷杀菌需求明确。",
+         "装备增速显著高于饮料整体，连续式低温杀菌仍有空位"),
+    ]
+    units = ["万家", "%", "亿美元"]
+    for k, (tag, acc, big, title, body, concl) in enumerate(cards):
+        _note_card(slide, M + k * (cw + 0.26), ct, cw, ch, tag=tag, tag_fill=acc,
+                   big=big, big_unit=units[k], title=title, body=body, concl=concl)
+
+    takeaway(slide, 6.04, [
+        T("需求、品类、装备三端趋势叠加，"),
+        T("萃取与超声杀菌一体化装备正处在市场窗口的交汇点", c=GOLD_LT),
+    ], h=0.70, sz=16)
+    foot(slide, idx, note="来源：CGTN 2026-02；瑞幸 2026Q2 业绩；Mordor Intelligence "
+                          "China Coffee Market；360iResearch HPP 装备报告；Hiperbaric 官方资料")
+
+
+def s08(slide, idx):
+    """08 应用场景 · 高峰期大流量人群。"""
+    from theme import page_frame
+
+    reset(slide)
+    page_frame(slide)
+    head(slide, "02 / 行业现状 · 应用场景",
+         [T("高峰期大流量场景："), T("出杯速度、风味一致性与人力成本三重挤压", c=RED_HI)],
+         sz=25)
+
+    band = rect(slide, M, 1.30, CW, 0.74, fill=BLUE_TINT,
+                shape=MSO_SHAPE.ROUNDED_RECTANGLE, adj=0.10)
+    rect(slide, M, 1.30, 0.06, 0.74, fill=CRIMSON)
+    fill_text(band, [P([
+        T("高峰期矛盾　", sz=14.5, b=True, c=NAVY),
+        T("现磨模式受研磨、萃取、清洗节拍限制，而订单集中在早高峰与午后释放，"
+          "门店同时承受", sz=13.5, c=INK),
+        T("出杯排队、风味漂移、峰值人力", sz=13.5, b=True, c=RED_HI),
+        T(" 三重压力。", sz=13.5, c=INK),
+    ], ls=1.3)], anchor="m", pad=(0.26, 0.24, 0.04, 0.04))
+
+    bt, bb = 2.20, 5.92
+    lw = 8.10
+    scen = [
+        ("01", "连锁咖啡门店 · 早午高峰",
+         "咖啡液即调即出，省去单杯研磨与萃取节拍；瑞幸国内门店已超 3 万家"
+         "（2026.02），高峰出杯能力直接决定单店产出。"),
+        ("02", "新茶饮 / 复合饮品店",
+         "以咖啡液作标准化基底，门店无需配置专业磨豆与意式机，降低设备投入与"
+         "咖啡师培训门槛。"),
+        ("03", "便利店 · 自助咖啡机",
+         "无人值守场景需要常温可存、开封即用的标准化原料，对货架期与批次一致性"
+         "要求高于门店现制。"),
+        ("04", "校园 · 写字楼 · 机场高铁",
+         "短时高并发人流，要求批量稳定供应与一致口感，供应中断或口感漂移会直接"
+         "损失峰值销量。"),
+    ]
+    sw, sh_ = (lw - 0.24) / 2, (bb - bt - 0.22) / 2
+    for k, (no, title, body) in enumerate(scen):
+        x = M + (k % 2) * (sw + 0.24)
+        y = bt + (k // 2) * (sh_ + 0.22)
+        card(slide, x, y, sw, sh_, radius=0.04)
+        rect(slide, x, y, 0.055, sh_, fill=NAVY)
+        textbox(slide, x + 0.24, y + 0.18, 0.60, 0.34,
+                [P([T(no, sz=20, b=True, c="D6E2EE")], ls=1.0)])
+        textbox(slide, x + 0.86, y + 0.22, sw - 1.08, 0.34,
+                [P([T(title, sz=15, b=True, c=NAVY)], ls=1.1)])
+        rect(slide, x + 0.24, y + 0.62, sw - 0.48, 0.012, fill=BLUE_LINE)
+        textbox(slide, x + 0.24, y + 0.72, sw - 0.48, sh_ - 0.88,
+                [P([T(body, sz=11.2, c=INK_MID)], ls=1.42)])
+
+    rx, rw = M + lw + 0.26, CW - lw - 0.26
+    lab = rect(slide, rx, bt, rw, 0.44, fill=NAVY,
+               shape=MSO_SHAPE.ROUNDED_RECTANGLE, adj=0.12)
+    fill_text(lab, [P([T("对上游装备的要求", sz=13.5)], al="c")], b=True, c=WHITE,
+              anchor="m")
+    reqs = [
+        ("常温货架期", "无需冷链即可全国流通"),
+        ("风味一致性", "批次香气与口感稳定，支撑连锁标准化出品"),
+        ("连续化产能", "连续作业替代间歇批次，支撑规模化供货"),
+    ]
+    rh = (bb - bt - 0.44 - 0.14 - 2 * 0.14) / 3
+    for k, (t, b_) in enumerate(reqs):
+        y = bt + 0.58 + k * (rh + 0.14)
+        card(slide, rx, y, rw, rh, radius=0.05)
+        rect(slide, rx + 0.16, y + 0.14, 0.05, rh - 0.28, fill=CRIMSON)
+        textbox(slide, rx + 0.32, y + 0.14, rw - 0.50, 0.32,
+                [P([T(t, sz=14, b=True, c=NAVY)], ls=1.0)])
+        textbox(slide, rx + 0.32, y + 0.48, rw - 0.48, rh - 0.60,
+                [P([T(b_, sz=11, c=INK_MID)], ls=1.38)])
+
+    takeaway(slide, 6.04, [
+        T("高峰期大流量把标准化咖啡液变成刚需，而其"),
+        T("风味与货架期由上游灭菌工艺决定", c=GOLD_LT),
+        T(" —— 即本项目切入点"),
+    ], h=0.70, sz=16)
+    foot(slide, idx, note="场景归纳基于行业公开信息与本项目调研；门店数据来源 CGTN 2026-02")
+
+
+def s14(slide, idx):
+    """14 竞品分析① —— 三条杀菌技术路线格局。"""
+    from theme import page_frame
+
+    reset(slide)
+    page_frame(slide)
+    head(slide, "03 / 核心优势 · 竞品分析",
+         [T("竞品格局：三条杀菌路线，"),
+          T("尚无面向咖啡液的一体化整机", c=RED_HI)], sz=25)
+
+    ct, ch = 1.30, 4.60
+    cw = (CW - 2 * 0.26) / 3
+    routes = [
+        (NAVY, "热杀菌 UHT", "ULTRA-HIGH TEMPERATURE", "行业主流",
+         ["利乐 Tetra Pak、GEA", "SPX FLOW 等"],
+         ["加热至 135℃ 以上杀灭全部微生物，产品可常温流通",
+          "需灭菌机与无菌灌装单元配套，用管式或板式换热器间接加热",
+          "头部咖啡液品牌（如永璞）即以 UHT 工艺主打锁鲜"],
+         "高温引发梅纳反应，改变风味与色泽；工序能耗高"),
+        (NAVY_MID, "超高压 HPP", "HIGH PRESSURE PROCESSING", "高端冷杀菌",
+         ["Hiperbaric（西班牙）", "JBT Avure（美国）"],
+         ["5—20℃ 非热处理，压力最高 600 MPa，保压 1—3 分钟",
+          "全球装机 350 台以上，其中约 19% 用于果汁与饮料",
+          "冷加工可较好保留风味、质地与营养"],
+         "间歇式在包处理难以连续化；承压腔体投资高；包内滞留气体带来能效损失"),
+        (CRIMSON, "超声非热", "POWER ULTRASOUND", "本项目路线",
+         ["Hielscher（德国）", "Sonics & Materials 等"],
+         ["空化效应破坏微生物细胞结构，可用于液态食品超声杀菌",
+          "工业机型单机功率可达 16 kW，可多机并联放大产能",
+          "同一能场兼具萃取与杀菌潜力，属非热加工路线"],
+         "现有产品为通用超声处理单元，需自行串联萃取与灌装，缺少面向咖啡液的一体化整机"),
+    ]
+    for k, (acc, name, en, status, vendors, points, limit) in enumerate(routes):
+        x = M + k * (cw + 0.26)
+        card(slide, x, ct, cw, ch, radius=0.04)
+        rect(slide, x, ct, cw, 0.80, fill=acc,
+             shape=MSO_SHAPE.ROUND_2_SAME_RECTANGLE, adj=0.08)
+        hd = slide.shapes[-1]
+        fill_text(hd, [P([T(name, sz=17, b=True, c=WHITE)], ls=1.0, sa=2),
+                       P([T(en, sz=9.5, b=True, c="C9DAEA", spc=1.4)], ls=1.0)],
+                  anchor="m", pad=(0.20, 0.20, 0.04, 0.04))
+        chip(slide, x + cw - 1.42, ct + 0.94, 1.26, 0.32, [T(status, sz=10.5)],
+             fill=WHITE, color=acc, line_color=acc)
+        textbox(slide, x + 0.22, ct + 0.94, cw - 1.66, 0.32,
+                [P([T("代表厂商", sz=10.5, b=True, c=INK_SOFT, spc=1.0)])])
+        textbox(slide, x + 0.22, ct + 1.26, cw - 0.44, 0.52,
+                [P([T(v, sz=12, b=True, c=NAVY)], ls=1.26) for v in vendors])
+        rect(slide, x + 0.22, ct + 1.84, cw - 0.44, 0.012, fill=BLUE_LINE)
+        paras = []
+        for p_ in points:
+            paras.append(P([T("· ", c=acc, b=True), T(p_, c=INK_MID)], ls=1.42, sa=4))
+        textbox(slide, x + 0.22, ct + 1.96, cw - 0.44, ch - 2.98, paras, sz=10.8)
+        lim = rect(slide, x + 0.16, ct + ch - 0.96, cw - 0.32, 0.80, fill="F2F5F9",
+                   shape=MSO_SHAPE.ROUNDED_RECTANGLE, adj=0.09)
+        fill_text(lim, [P([T("主要局限　", sz=11, b=True, c=CRIMSON),
+                           T(limit, sz=10.8, c=INK_MID)], ls=1.34)],
+                  anchor="m", pad=(0.16, 0.14, 0.02, 0.02))
+
+    takeaway(slide, 5.98, [
+        T("三条路线均为"), T("单工序装备", c=GOLD_LT),
+        T("；本项目以 "),
+        T("“萃取＋超声低温杀菌”连续一体化整机", c=GOLD_LT),
+        T(" 切入尚未被占据的位置"),
+    ], h=0.70, sz=15.5)
+    foot(slide, idx, note="来源：利乐官网 UHT 技术页；Hiperbaric 官网；JBT Avure 官网；"
+                          "Hielscher 官网（超声杀菌 / UIP16000）；永璞浓缩咖啡液商品页")
+
+
+def s15(slide, idx):
+    """15 竞品分析② —— 核心参数对标与差异化。"""
+    from theme import page_frame
+
+    reset(slide)
+    page_frame(slide)
+    head(slide, "03 / 核心优势 · 竞品分析",
+         [T("参数对标："), T("56℃ 低温、连续一体化、综合能耗降低 20%~30%", c=RED_HI)],
+         sz=25)
+
+    rows = [
+        ["对比维度", "热杀菌 UHT", "超高压 HPP", "通用超声设备", "本项目 SK-Ⅱ"],
+        ["处理温度", "＞135℃", "5—20℃", "近常温", [T("56℃")]],
+        ["作用机理", "热致死", "等静压", "空化效应", "空化 ＋ 低温协同"],
+        ["生产形态", "连续管式 ＋ 无菌灌装", "间歇 · 在包处理", "通用处理单元",
+         "萃取—杀菌连续一体化"],
+        ["风味保留", [T("低", c=RED_HI, b=True), T(" · 梅纳反应改变风味色泽")],
+         "高", "高", "高 · 第三方检测报告支撑"],
+        ["常温货架期", "6—9 个月", "较未处理延长 2—3 倍", "需工艺验证", "待中试验证"],
+        ["综合能耗", [T("高", c=RED_HI, b=True), T(" · 为发达国家 1.9 倍")],
+         "高压泵功耗大", "取决于配套工序", "降低 20%~30%"],
+    ]
+    col_w = [1.75, 2.42, 2.24, 2.24, 3.44]
+    _, th = table(slide, M, 1.30, CW, col_w, rows, head_h=0.52, row_h=0.52,
+                  sz=11.2, head_sz=12.5, accent_col=4)
+
+    dy = 1.30 + th + 0.18
+    diffs = [
+        ("一体化", "萃取与杀菌连续闭环，替代多台单工序设备串联", NAVY),
+        ("低　温", "56℃ 即达良好杀菌效果，显著降低风味损失", NAVY_MID),
+        ("节　能", "综合运行能耗降低 20%~30%", GREEN),
+        ("可验证", "已出具第三方检验检测报告", CRIMSON),
+    ]
+    dw = (CW - 3 * 0.20) / 4
+    for k, (t, b_, acc) in enumerate(diffs):
+        x = M + k * (dw + 0.20)
+        card(slide, x, dy, dw, 0.94, radius=0.06)
+        rect(slide, x, dy, dw, 0.05, fill=acc)
+        textbox(slide, x + 0.18, dy + 0.14, dw - 0.36, 0.30,
+                [P([T(t, sz=14.5, b=True, c=acc, spc=0.8)], ls=1.0)])
+        textbox(slide, x + 0.18, dy + 0.46, dw - 0.36, 0.42,
+                [P([T(b_, sz=10.8, c=INK_MID)], ls=1.34)])
+
+    takeaway(slide, dy + 1.10, [
+        T("对标结论：以 "),
+        T("56℃ 低温、连续一体化、20%~30% 综合节能", c=GOLD_LT),
+        T(" 形成差异化；常温货架期与单位成本"),
+        T("以中试数据为准", c=GOLD_LT),
+        T("。"),
+    ], h=0.68, sz=15)
+    foot(slide, idx, note="对标口径：UHT / HPP 温度与压力区间取自原稿第 10 页及厂商公开资料；"
+                          "本项目数据取自第 16—18 页实验与第三方检测报告")
+
 
 
 if __name__ == "__main__":
