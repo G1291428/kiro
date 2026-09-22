@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --navy:#16416C; --navy2:#1E5996; --blue:#2A7ABF; --tint:#EDF3F9;
+    --line:#CFDEEA; --crimson:#B9282C; --red:#C00000; --gold:#C8963C;
+    --ink:#1F2937; --ink2:#4B5563; --ink3:#8A94A2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:1400px;height:980px;background:#fff;
+       font-family:"Noto Sans CJK SC","Microsoft YaHei",sans-serif;color:var(--ink);
+       -webkit-font-smoothing:antialiased}
+  .head{height:104px;background:var(--navy);display:flex;align-items:center;
+        padding:0 40px;gap:22px}
+  .head .bar{width:7px;height:56px;background:var(--crimson);border-radius:4px}
+  .head h1{font-size:40px;font-weight:700;color:#fff;letter-spacing:1px}
+  .head .en{margin-left:auto;font-size:15px;font-weight:700;color:#9DBBD6;
+            letter-spacing:2.6px}
+
+  .temp{margin:26px 40px 0;border:1.6px solid var(--line);border-radius:10px}
+  .temp .ct{background:var(--tint);border-bottom:1.6px solid var(--line);
+            border-radius:8px 8px 0 0;padding:11px 20px;font-size:20px;
+            font-weight:700;color:var(--navy);display:flex;align-items:baseline;gap:14px}
+  .temp .ct s{text-decoration:none;font-size:14.5px;font-weight:400;color:var(--ink2)}
+  .rows{padding:20px 26px 8px}
+  .row{display:grid;grid-template-columns:232px 1fr 152px;align-items:center;
+       gap:18px;height:62px}
+  .row .nm{font-size:18.5px;font-weight:700;color:var(--ink)}
+  .row .nm i{display:block;font-style:normal;font-size:13px;font-weight:400;
+             color:var(--ink3);margin-top:2px}
+  .track{position:relative;height:30px;background:#F3F6F9;border-radius:6px}
+  .band{position:absolute;top:0;height:30px;border-radius:6px}
+  .mk{position:absolute;top:-9px;height:48px;width:4px;background:var(--navy);
+      border-radius:2px}
+  .guide{position:absolute;top:-26px;bottom:-26px;width:0;
+         border-left:2.4px dashed var(--navy2);opacity:.55}
+  .val{font-size:22px;font-weight:700;text-align:right;white-space:nowrap}
+  /* 刻度轴必须与色带轨道左右严格对齐：
+     左 = rows padding 26 + 名称列 232 + gap 18 = 276
+     右 = rows padding 26 + 数值列 152 + gap 18 = 196 */
+  .axis{position:relative;height:34px;margin:2px 196px 0 276px;
+        border-top:1.6px solid var(--line)}
+  .axis span{position:absolute;top:7px;transform:translateX(-50%);
+             font-size:13.5px;color:var(--ink3)}
+  .axis span::before{content:"";position:absolute;left:50%;top:-8px;width:1.6px;
+             height:7px;background:var(--line)}
+
+  .cmp{display:grid;grid-template-columns:1fr 78px 1fr;align-items:stretch;
+       margin:22px 40px 0;gap:0}
+  .pane{border:1.6px solid var(--line);border-radius:10px;overflow:hidden}
+  .pane.bad{border-color:#E6C9CA}
+  .pane .ph{padding:12px 22px;font-size:22px;font-weight:700;color:#fff;
+            display:flex;align-items:baseline;gap:12px}
+  .pane.bad .ph{background:var(--crimson)}
+  .pane.good .ph{background:var(--navy)}
+  .pane .ph s{text-decoration:none;font-size:14px;font-weight:400;color:#F0D8D9}
+  .pane.good .ph s{color:#B8CFE4}
+  .it{display:grid;grid-template-columns:52px 1fr;gap:15px;padding:15px 22px;
+      align-items:start}
+  .it + .it{border-top:1.2px solid #EDF1F5}
+  .it h4{font-size:19px;font-weight:700;margin-bottom:4px}
+  .pane.bad .it h4{color:var(--crimson)}
+  .pane.good .it h4{color:var(--navy)}
+  .it p{font-size:15.5px;line-height:1.54;color:var(--ink2)}
+  .it p b{color:var(--red);font-weight:700}
+  .pane.good .it p b{color:var(--navy2)}
+  .arrow{display:flex;flex-direction:column;align-items:center;
+         justify-content:center;gap:8px}
+  .arrow .t{font-size:13px;font-weight:700;color:var(--ink3);letter-spacing:1px}
+
+  .sum{margin:22px 40px 0;background:var(--navy);border-radius:10px;
+       padding:17px 26px;display:flex;align-items:center;gap:18px}
+  .sum .tag{background:var(--crimson);color:#fff;font-size:15px;font-weight:700;
+            padding:6px 14px;border-radius:5px;flex:none}
+  .sum p{font-size:21px;font-weight:700;color:#fff}
+  .sum p em{font-style:normal;color:#F2C879}
+  .foot{padding:15px 40px 0;font-size:13.5px;color:var(--ink3)}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="bar"></div>
+    <h1>传统热杀菌的代价与本项目方案</h1>
+    <div class="en">THERMAL vs. ULTRASONIC STERILIZATION</div>
+  </div>
+
+  <div class="temp">
+    <div class="ct">处理温度区间对照 <s>横轴为处理温度（℃）；热杀菌以色带表示温度区间，本项目为单点工艺温度</s></div>
+    <div class="rows">
+      <div class="row">
+        <div class="nm">UHT 超高温瞬时杀菌<i>常温流通，保质期 6—9 个月</i></div>
+        <div class="track">
+          <div class="guide" style="left:35%"></div>
+          <div class="band" style="left:84.4%;width:9.4%;background:#C00000"></div>
+        </div>
+        <div class="val" style="color:#C00000">135—150℃</div>
+      </div>
+      <div class="row">
+        <div class="nm">巴氏杀菌<i>需 4—5℃ 冷链，质保期短</i></div>
+        <div class="track">
+          <div class="guide" style="left:35%"></div>
+          <div class="band" style="left:43.75%;width:12.5%;background:#D98324"></div>
+        </div>
+        <div class="val" style="color:#D98324">70—90℃</div>
+      </div>
+      <div class="row">
+        <div class="nm">超声低温杀菌<i>本项目，非热辅助</i></div>
+        <div class="track">
+          <div class="band" style="left:0;width:35%;background:#16416C"></div>
+          <div class="mk" style="left:35%"></div>
+        </div>
+        <div class="val" style="color:#16416C">56℃</div>
+      </div>
+    </div>
+    <div class="axis">
+      <span style="left:0%">0</span>
+      <span style="left:25%">40</span>
+      <span style="left:50%">80</span>
+      <span style="left:75%">120</span>
+      <span style="left:100%">160</span>
+    </div>
+  </div>
+
+  <div class="cmp">
+    <div class="pane bad">
+      <div class="ph">传统热杀菌 <s>以热致死实现灭菌</s></div>
+      <div class="it">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <rect width="52" height="52" rx="10" fill="#FBEDEE"/>
+          <g stroke="#C00000" stroke-width="2.8" stroke-linecap="round" fill="none">
+            <path d="M14 36 q6-9 12 0 t12 0"/><path d="M14 27 q6-9 12 0 t12 0"/>
+            <path d="M14 18 q6-9 12 0 t12 0"/>
+          </g>
+        </svg>
+        <div><h4>梅纳反应</h4>
+        <p>高温足以引发梅纳反应，<b>风味与色泽被改变</b>。</p></div>
+      </div>
+      <div class="it">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <rect width="52" height="52" rx="10" fill="#FBEDEE"/>
+          <path d="M20 14 q-8 8 0 14 q8 6 0 12" fill="none" stroke="#C00000"
+                stroke-width="2.8" stroke-linecap="round"/>
+          <path d="M31 14 q-8 8 0 14 q8 6 0 12" fill="none" stroke="#C00000"
+                stroke-width="2.8" stroke-linecap="round" opacity=".45"/>
+          <path d="M38 30 v10 m-4-4 4 4 4-4" fill="none" stroke="#C00000"
+                stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <div><h4>风味与营养损失</h4>
+        <p>香气成分在热处理过程中大量散失，<b>营养同步破坏</b>。</p></div>
+      </div>
+      <div class="it">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <rect width="52" height="52" rx="10" fill="#FBEDEE"/>
+          <path d="M28 11 L17 29 h8 l-3 13 12-19 h-8 Z" fill="#C00000"/>
+        </svg>
+        <div><h4>能耗偏高</h4>
+        <p>萃取与灭菌分设两套设备各自加热，行业单位能耗约为<b>发达国家 1.9 倍</b>。</p></div>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <svg width="62" height="62" viewBox="0 0 62 62">
+        <circle cx="31" cy="31" r="27" fill="#EDF3F9" stroke="#CFDEEA"
+                stroke-width="1.6"/>
+        <path d="M17 31 H37" stroke="#16416C" stroke-width="4.2"
+              stroke-linecap="round"/>
+        <path d="M33 22 L44 31 L33 40" fill="none" stroke="#16416C"
+              stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div class="pane good">
+      <div class="ph">超声低温杀菌 <s>本项目，以力学作用灭活</s></div>
+      <div class="it">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <rect width="52" height="52" rx="10" fill="#EDF3F9"/>
+          <g transform="translate(26 26)" stroke="#1E5996" stroke-width="2.8"
+             stroke-linecap="round">
+            <path d="M0-15 V-8"/><path d="M0 15 V8"/><path d="M-15 0 H-8"/>
+            <path d="M15 0 H8"/><path d="M-11-11 l5 5"/><path d="M11 11 l-5-5"/>
+            <path d="M11-11 l-5 5"/><path d="M-11 11 l5-5"/>
+          </g>
+          <circle cx="26" cy="26" r="4" fill="#1E5996"/>
+        </svg>
+        <div><h4>物理破壁</h4>
+        <p>空化崩溃产生的局部高压与剪切破坏细胞结构，<b>不依赖高温</b>。</p></div>
+      </div>
+      <div class="it">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <rect width="52" height="52" rx="10" fill="#EDF3F9"/>
+          <path d="M19 14 q-8 8 0 14 q8 6 0 12" fill="none" stroke="#1E5996"
+                stroke-width="2.8" stroke-linecap="round"/>
+          <path d="M29 14 q-8 8 0 14 q8 6 0 12" fill="none" stroke="#1E5996"
+                stroke-width="2.8" stroke-linecap="round" opacity=".5"/>
+          <path d="M33 33 l5 5 l8-11" fill="none" stroke="#1F7A4D" stroke-width="3"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div><h4>香气保留</h4>
+        <p>风味物质色谱对照显示，<b>香气成分保留优于热杀菌</b>。</p></div>
+      </div>
+      <div class="it">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <rect width="52" height="52" rx="10" fill="#EDF3F9"/>
+          <path d="M26 11 L15 29 h8 l-3 13 12-19 h-8 Z" fill="#1E5996"/>
+          <path d="M36 30 v10 m-4-4 4 4 4-4" fill="none" stroke="#1F7A4D"
+                stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <div><h4>综合节能</h4>
+        <p>萃取与杀菌一体连续、传感闭环按需供能，运行能耗<b>降低 20%~30%</b>。</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sum">
+    <div class="tag">核心改变</div>
+    <p>处理温度由 <em>135℃ 以上</em> 降至 <em>56℃</em>，在保留香气的同时综合能耗再降 <em>20%~30%</em></p>
+  </div>
+
+  <div class="foot">温度区间、保质期与能耗数据引自本项目行业调研与试验条件；本项目常温货架期指标尚待中试验证。</div>
+</body>
+</html>

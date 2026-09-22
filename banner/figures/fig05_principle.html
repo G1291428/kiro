@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --navy:#16416C; --navy2:#1E5996; --blue:#2A7ABF; --tint:#EDF3F9;
+    --line:#CFDEEA; --crimson:#B9282C; --red:#C00000; --gold:#C8963C;
+    --ink:#1F2937; --ink2:#4B5563; --ink3:#8A94A2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:1400px;height:980px;background:#fff;
+       font-family:"Noto Sans CJK SC","Microsoft YaHei",sans-serif;color:var(--ink);
+       -webkit-font-smoothing:antialiased}
+  .head{height:104px;background:var(--navy);display:flex;align-items:center;
+        padding:0 40px;gap:22px}
+  .head .bar{width:7px;height:56px;background:var(--crimson);border-radius:4px}
+  .head h1{font-size:40px;font-weight:700;color:#fff;letter-spacing:1px}
+  .head .en{margin-left:auto;font-size:15px;font-weight:700;color:#9DBBD6;
+             letter-spacing:2.6px}
+  .body{display:grid;grid-template-columns:718px 1fr;gap:26px;padding:28px 40px 0}
+  .card{border:1.6px solid var(--line);border-radius:10px;background:#fff}
+  .card .ct{background:var(--tint);border-bottom:1.6px solid var(--line);
+            border-radius:8px 8px 0 0;padding:11px 20px;font-size:20px;
+            font-weight:700;color:var(--navy)}
+  /* 四张卡纵向撑满，底边与左侧示意图卡对齐 */
+  .stages{display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+  .stage{display:grid;grid-template-columns:118px 1fr;gap:16px;align-items:center;
+         border:1.6px solid var(--line);border-radius:10px;padding:14px 18px}
+  .stage .no{position:absolute;font-size:0}
+  .stage h3{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:5px}
+  .stage h3 span{display:inline-block;width:30px;height:30px;line-height:30px;
+      text-align:center;background:var(--navy);color:#fff;border-radius:50%;
+      font-size:16px;margin-right:10px;vertical-align:2px}
+  .stage p{font-size:15.5px;line-height:1.56;color:var(--ink2)}
+  .result{display:grid;grid-template-columns:118px 1fr;gap:16px;align-items:center;
+          border:1.6px solid var(--crimson);border-radius:10px;padding:14px 18px;
+          background:#FDF6F6}
+  .result h3{font-size:22px;font-weight:700;color:var(--crimson);margin-bottom:5px}
+  .result p{font-size:15.5px;line-height:1.56;color:var(--ink2)}
+  .chips{display:flex;gap:16px;padding:22px 40px 0}
+  .chip{flex:1;border-radius:10px;background:var(--navy);color:#fff;
+        padding:15px 22px;display:flex;align-items:center;gap:14px}
+  .chip b{font-size:21px;font-weight:700}
+  .chip s{text-decoration:none;font-size:15px;color:#BBD2E6}
+  .chip .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);
+             flex:none}
+  .foot{padding:16px 40px 0;font-size:13.5px;color:var(--ink3)}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="bar"></div>
+    <h1>超声空化低温杀菌原理</h1>
+    <div class="en">ULTRASONIC CAVITATION STERILIZATION</div>
+  </div>
+
+  <div class="body">
+    <div class="card">
+      <div class="ct">作用过程示意</div>
+      <svg width="714" height="556" viewBox="0 0 714 556">
+        <defs>
+          <linearGradient id="liq" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#E4EFF8"/><stop offset="1" stop-color="#CFE2F1"/>
+          </linearGradient>
+          <linearGradient id="horn" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#5B7C9D"/><stop offset=".45" stop-color="#9FB4C8"/>
+            <stop offset="1" stop-color="#46637F"/>
+          </linearGradient>
+          <radialGradient id="bub" cx=".35" cy=".3" r=".8">
+            <stop offset="0" stop-color="#fff" stop-opacity=".95"/>
+            <stop offset=".55" stop-color="#9FC8E6" stop-opacity=".55"/>
+            <stop offset="1" stop-color="#2A7ABF" stop-opacity=".35"/>
+          </radialGradient>
+        </defs>
+
+        <!-- 液体（液面以下） -->
+        <path d="M110 154 H604 V451 a24 24 0 0 1-24 24 H134 a24 24 0 0 1-24-24 Z"
+              fill="url(#liq)"/>
+        <!-- 液面 -->
+        <path d="M110 154 q31-10 62 0 t62 0 t62 0 t62 0 t62 0 t62 0 t62 0 t62 0"
+              fill="none" stroke="#7FA8CC" stroke-width="2.6"/>
+        <!-- 封闭罐体轮廓 -->
+        <path d="M108 118 H606 V452 a26 26 0 0 1-26 26 H134 a26 26 0 0 1-26-26 V118 Z"
+              fill="none" stroke="#16416C" stroke-width="3.4"/>
+
+        <!-- 变幅杆 -->
+        <rect x="330" y="26" width="58" height="52" rx="6" fill="#3C5B78"/>
+        <rect x="343" y="78" width="32" height="46" fill="url(#horn)"/>
+        <path d="M343 124 h32 l-7 40 h-18 Z" fill="url(#horn)"/>
+        <rect x="348" y="164" width="22" height="34" rx="3" fill="#46637F"/>
+
+        <!-- 声波弧 -->
+        <g fill="none" stroke="#2A7ABF" stroke-linecap="round">
+          <path d="M300 212 q59 30 118 0" stroke-width="3.2" opacity=".85"/>
+          <path d="M276 240 q83 40 166 0" stroke-width="3" opacity=".68"/>
+          <path d="M252 270 q107 50 214 0" stroke-width="2.8" opacity=".52"/>
+          <path d="M228 302 q131 58 262 0" stroke-width="2.6" opacity=".38"/>
+          <path d="M204 336 q155 64 310 0" stroke-width="2.4" opacity=".26"/>
+        </g>
+
+        <!-- 空化泡：生成 → 长大 → 崩溃 -->
+        <circle cx="222" cy="368" r="7" fill="url(#bub)" stroke="#2A7ABF" stroke-width="1.6"/>
+        <circle cx="256" cy="394" r="11" fill="url(#bub)" stroke="#2A7ABF" stroke-width="1.6"/>
+        <circle cx="300" cy="372" r="17" fill="url(#bub)" stroke="#2A7ABF" stroke-width="1.8"/>
+        <circle cx="352" cy="398" r="23" fill="url(#bub)" stroke="#2A7ABF" stroke-width="1.8"/>
+        <circle cx="474" cy="368" r="9" fill="url(#bub)" stroke="#2A7ABF" stroke-width="1.6"/>
+        <circle cx="516" cy="394" r="14" fill="url(#bub)" stroke="#2A7ABF" stroke-width="1.6"/>
+
+        <!-- 崩溃点 -->
+        <g transform="translate(424 364)">
+          <g stroke="#C00000" stroke-width="3.4" stroke-linecap="round">
+            <path d="M0-30 V-16"/><path d="M0 30 V16"/><path d="M-30 0 H-16"/>
+            <path d="M30 0 H16"/><path d="M-21-21 l10 10"/><path d="M21 21 l-10-10"/>
+            <path d="M21-21 l-10 10"/><path d="M-21 21 l10-10"/>
+          </g>
+          <circle r="11" fill="#C00000" opacity=".16"/>
+          <circle r="5.5" fill="#C00000"/>
+        </g>
+
+        <!-- 微生物：完好 / 破损 / 灭活（均置于液体内） -->
+        <g transform="translate(168 440)">
+          <rect x="-24" y="-11" width="48" height="22" rx="11" fill="#3E8E5E"
+                stroke="#1F7A4D" stroke-width="2.4"/>
+          <circle cx="-9" cy="0" r="3.4" fill="#D9F0E2"/><circle cx="7" cy="2" r="3" fill="#D9F0E2"/>
+          <path d="M24 0 q14-8 24 2" fill="none" stroke="#1F7A4D" stroke-width="2"/>
+        </g>
+        <g transform="translate(318 444)">
+          <rect x="-24" y="-11" width="48" height="22" rx="11" fill="#7FB394"
+                stroke="#1F7A4D" stroke-width="2.4"/>
+          <path d="M-6-11 l7 11 l-8 11" fill="none" stroke="#C00000" stroke-width="2.6"/>
+          <circle cx="12" cy="1" r="2.8" fill="#D9F0E2"/>
+        </g>
+        <g transform="translate(474 442)">
+          <path d="M-26-9 q12-6 22 2 q10 8 22 1 l-3 18 q-20 6-40 0 Z"
+                fill="#C9D6CE" stroke="#8A9A90" stroke-width="2.2"/>
+          <g stroke="#8A9A90" stroke-width="2">
+            <path d="M-14-14 l-6-9"/><path d="M4-16 l3-10"/><path d="M20-12 l9-8"/>
+          </g>
+        </g>
+
+        <!-- 标注 -->
+        <g font-family="Noto Sans CJK SC" font-size="17" font-weight="700">
+          <g stroke="#8A94A2" stroke-width="1.6" stroke-dasharray="5 4">
+            <path d="M388 52 H470"/><path d="M370 182 H470"/>
+            <path d="M532 396 H556"/><path d="M448 380 L556 340"/>
+          </g>
+          <text x="478" y="58" fill="#16416C">超声变幅杆</text>
+          <text x="478" y="188" fill="#16416C">发射面</text>
+          <text x="562" y="346" fill="#C00000">气泡瞬时崩溃</text>
+          <text x="562" y="402" fill="#1E5996">空化泡</text>
+          <text x="142" y="504" fill="#1F7A4D">完好菌体</text>
+          <text x="280" y="504" fill="#4B5563">细胞壁破损</text>
+          <text x="436" y="504" fill="#8A9A90">菌体灭活</text>
+          <text x="118" y="140" fill="#4B5563" font-size="16">咖啡液（56℃）</text>
+        </g>
+        <g stroke="#8A94A2" stroke-width="1.6" stroke-dasharray="5 4">
+          <path d="M168 453 V492"/><path d="M318 457 V492"/><path d="M474 457 V492"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="stages">
+      <div class="stage">
+        <svg width="118" height="74" viewBox="0 0 118 74">
+          <rect x="4" y="6" width="110" height="62" rx="8" fill="#F2F7FB"/>
+          <path d="M14 22 q22 16 44 0 t44 0" fill="none" stroke="#2A7ABF"
+                stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="40" cy="50" r="5" fill="#fff" stroke="#2A7ABF" stroke-width="2"/>
+          <circle cx="62" cy="55" r="3.4" fill="#fff" stroke="#2A7ABF" stroke-width="1.8"/>
+          <circle cx="80" cy="48" r="4.2" fill="#fff" stroke="#2A7ABF" stroke-width="1.8"/>
+        </svg>
+        <div>
+          <h3><span>1</span>气核生成</h3>
+          <p>超声疏相使液体局部压力降低，溶解气体析出形成微小气核</p>
+        </div>
+      </div>
+      <div class="stage">
+        <svg width="118" height="74" viewBox="0 0 118 74">
+          <rect x="4" y="6" width="110" height="62" rx="8" fill="#F2F7FB"/>
+          <circle cx="30" cy="40" r="7" fill="#fff" stroke="#2A7ABF" stroke-width="2"/>
+          <circle cx="58" cy="40" r="12" fill="#fff" stroke="#2A7ABF" stroke-width="2.2"/>
+          <circle cx="90" cy="40" r="17" fill="#fff" stroke="#2A7ABF" stroke-width="2.4"/>
+          <path d="M40 40 h6 M73 40 h4" stroke="#8A94A2" stroke-width="2"/>
+        </svg>
+        <div>
+          <h3><span>2</span>膨胀长大</h3>
+          <p>气核在声压交替作用下反复膨胀与收缩，逐周期长大</p>
+        </div>
+      </div>
+      <div class="stage">
+        <svg width="118" height="74" viewBox="0 0 118 74">
+          <rect x="4" y="6" width="110" height="62" rx="8" fill="#FDF3F3"/>
+          <g transform="translate(59 38)" stroke="#C00000" stroke-width="2.8"
+             stroke-linecap="round">
+            <path d="M0-24 V-13"/><path d="M0 24 V13"/><path d="M-24 0 H-13"/>
+            <path d="M24 0 H13"/><path d="M-17-17 l8 8"/><path d="M17 17 l-8-8"/>
+            <path d="M17-17 l-8 8"/><path d="M-17 17 l8-8"/>
+          </g>
+          <circle cx="59" cy="38" r="5" fill="#C00000"/>
+        </svg>
+        <div>
+          <h3><span>3</span>瞬时崩溃</h3>
+          <p>气泡失稳崩溃，在极小尺度内产生高压、强剪切与微射流</p>
+        </div>
+      </div>
+      <div class="result">
+        <svg width="118" height="74" viewBox="0 0 118 74">
+          <rect x="4" y="6" width="110" height="62" rx="8" fill="#fff"
+                stroke="#E6C9CA" stroke-width="1.6"/>
+          <g transform="translate(40 38)">
+            <rect x="-18" y="-9" width="36" height="18" rx="9" fill="#7FB394"
+                  stroke="#1F7A4D" stroke-width="2"/>
+            <path d="M-4-9 l5 9 l-6 9" fill="none" stroke="#C00000" stroke-width="2.4"/>
+          </g>
+          <path d="M64 38 h12" stroke="#8A94A2" stroke-width="2.4"/>
+          <g transform="translate(96 38)">
+            <path d="M-16-7 q8-4 14 1 q6 5 14 1 l-2 12 q-13 4-26 0 Z"
+                  fill="#C9D6CE" stroke="#8A9A90" stroke-width="1.8"/>
+          </g>
+        </svg>
+        <div>
+          <h3>细胞壁破裂，微生物灭活</h3>
+          <p>灭活依靠力学作用完成，全过程无需高温，避开热处理对香气与营养的破坏。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chips">
+    <div class="chip"><span class="dot"></span><b>56℃</b><s>低温处理</s></div>
+    <div class="chip"><span class="dot"></span><b>物理作用</b><s>不添加化学试剂</s></div>
+    <div class="chip"><span class="dot"></span><b>香气保留</b><s>色谱对照优于热杀菌</s></div>
+  </div>
+
+  <div class="foot">原理示意图，非实验数据。图中 56℃ 为本项目超声杀菌试验温度；香气保留结论依据风味物质色谱对照。</div>
+</body>
+</html>
